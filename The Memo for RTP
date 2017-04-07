@@ -1,0 +1,104 @@
+NALs store into a file used for byte-stream format, and NALs for RTP is used packet-transport protocol. byte-stream format need to
+be add 0x000001 or 0x00000001 at the start of the NALs for distinguishing the other NALs.
+
+IDR: instantaneous decoding refresh
+
+IDR picture: A coded picutre containing only slices with I or SI slice types that causes a "reset" in the decoding process.
+             After the decoding of an IDR picture, all following coded pictures in decoding order can be decoded without 
+             inter prediction(帧间预测) from any picture decoded prior to the IDR picture.
+             
+redundant coded picture: The content of a redundant coded picture shall not be used by the decoding process for a bitstream
+                         conforming to H.264. The content of a redundant coded picuture may be used by the decoding process
+                         for a bitstream that contains errors or losses.
+8 	Picture parameter set
+pic_parameter_set_rbsp( ) 	1 	non-VCL 	non-VCL 	non-VCL
+decoding order number(DON): A field in the payload structure or a derived variable indicating NAL unit decoding order. Values of
+                            DON are in the range of 0 to 65535, inclusive. After reaching the maximum value, the value of DON 
+                            wraps around to 0.
+                            
+NALU-time: The value that the RTP timestamp would have if the NAL unit would be transported in its own RTP packet.
+
+transmission order: The order of packets in ascending RTP sequence number order. Within an aggregation packet
+                    (一幅图片的slice在多个包里面进行传输), the NAL unit transmission order is the same as the order of appearance
+                    NAL units in the packet.
+                    
+VCL: video coding layer
+
+RTP header:
+
+       0                 1                 2                 3
+0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 
+ V  P X   CC      M     PT                  Sequence number
+                            timestamp
+              synchronization source(SSRC) identifier
+              contributing source(CSRC) identifier
+              
+              
+Version(V): 2 bits 
+            this field identifies the version of RTP.
+padding(P): 1 bit
+            If the padding bit is set, the packet contains one or more additional padding octets at the end.
+extension(X): 1 bit
+            If the extension bit is set, the fixed header MUST be followed by exactly one header extension.
+CSRC count(CC): 4 bits
+            The CSRC count contains the number of CSRC identifiers that follow the fixed header.
+marker(M): 1 bit
+            The interpretation of the marker is defined by a profile. It is intended to allow significant events such as
+            frame boundaries to be marked in the packet stream.
+payload type(PT): 7 bits
+            for H.264 video stream, used in a dynamic way.
+            
+sequence number(SN): 16 bits
+            for the single NALU and non-interleaved packetization mode, the sequence number is used to determine decoding order
+            for the NALU. The sequence number increments by one for each RTP data packet sent, and may be used receiver to detect
+            packet loss and to restore packet sequence. The initial value should be random.
+timestamp:  32 bits
+            The RTP timestamp is set to the sampling timestamp of the content. A 90 kHZ clock rate MUST be used.
+            
+
+Payload structures
+
+                            
+
+
+
+
+
+
+NAL type:
+bit 0  1 2   3 4 5 6 7
+    F  NRI     Type
+
+F: 1 bit
+   forbidden_zero bit, should be zero for valid. 
+NRI: 2 bits
+   nal_ref_idc, a value of zero indicates that the nal is not for reconstruct reference pictures.
+   a value larger than zero is for reconstruct reference pictures and maintain the integrity of the reference of pictures.
+
+Type: 5 bits
+    nal_unit_type, 
+    0: unspecified.
+    1: coded slice of a non-IDR picture.
+    2: coded slice of data partation A.
+    3: coded slice of data partation B.
+    4. coded slice of data partation C.
+    5. coded slice of an IDR picture.
+    6. supplemental enhancement information(SEI)
+    7. sequence parameter set(SPS)
+    8. picture parameter set(PPS)
+    9. access_unit_delimiter
+    10. end of sequence.
+    11. end of stream.
+    12. filler data.
+    13. sequence parameter set extension.
+    14. prefix NAL unit.
+    15. subset sequence parameter set.
+    16-18. resevered.
+    19. coded slice of an auxiliary coded picture without partitioning.
+    20. coded slice extension.
+    21. coded slice extension for depth view components.
+    22-23. reserved
+    24-31. unspecified.
+    
+    
+    
